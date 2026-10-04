@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ProjectJudge AI — Intelligent Evaluation & Viva Simulator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen py-8 px-4 md:px-12 font-sans">
+  <div class="max-w-6xl mx-auto space-y-8">
+    <header class="border-b border-slate-700 pb-4">
+      <h1 class="text-3xl font-extrabold text-indigo-400">⚖️ ProjectJudge AI</h1>
+      <p class="text-slate-400 text-sm mt-1">Autonomous Capstone Project Evaluation & Multi-Judge Viva Defense Simulator</p>
+    </header>
+
+    <!-- Submission Form -->
+    <section class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-md">
+      <h2 class="text-lg font-bold mb-4 text-indigo-300">1. Project Submission Details</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Project Title</label>
+          <input id="title" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200" placeholder="Enter your project title" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Tech Stack</label>
+          <input id="tech_stack" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200" placeholder="e.g. Python, React, Firebase, Raspberry Pi" />
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Problem Statement</label>
+          <input id="problem_statement" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200" placeholder="Describe the problem your project solves" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Abstract</label>
+          <textarea id="abstract" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200" placeholder="Write a short summary of your project"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Methodology</label>
+          <textarea id="methodology" rows="3" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200" placeholder="Explain your design and workflow"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Objectives</label>
+          <input id="objectives" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200" placeholder="List your project goals" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Expected Outcome</label>
+          <input id="expected_outcome" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200" placeholder="State expected result or impact" />
+        </div>
+      </div>
+      <button onclick="submitEvaluation()" id="evalBtn" class="mt-5 w-full bg-indigo-600 hover:bg-indigo-500 font-semibold py-2.5 rounded transition">
+        Run Panel Evaluation
+      </button>
+    </section>
+
+    <!-- Results Section -->
+    <section id="resultsSection" class="hidden bg-slate-800 p-6 rounded-xl border border-slate-700 space-y-6">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-700 pb-4">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-100">Evaluation Report</h2>
+          <p class="text-slate-400 text-sm mt-1">Independent panel multi-criteria assessment</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div id="scoreBadge" class="mt-3 md:mt-0 text-3xl font-black px-5 py-2 bg-indigo-950 border border-indigo-500 rounded-lg text-indigo-300"></div>
+          <button onclick="downloadReport()" class="mt-3 md:mt-0 bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded text-sm font-semibold transition">
+            Download PDF Report
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+        <div class="w-full max-w-sm mx-auto">
+          <canvas id="radarChart"></canvas>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <h3 class="font-bold text-rose-400 text-sm tracking-wide uppercase">⚠️ Critical Weaknesses</h3>
+            <ul id="weaknessList" class="list-disc list-inside text-sm text-slate-300 space-y-1 mt-1"></ul>
+          </div>
+          <div>
+            <h3 class="font-bold text-emerald-400 text-sm tracking-wide uppercase">💡 Suggested Improvements</h3>
+            <ul id="improvementList" class="list-disc list-inside text-sm text-slate-300 space-y-1 mt-1"></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Viva Simulator -->
+      <div class="border-t border-slate-700 pt-6 mt-6">
+        <h2 class="text-lg font-bold text-indigo-300 mb-2">2. Defend in Viva Simulation</h2>
+        <p class="text-slate-400 text-sm mb-4">Pick a judge persona and defend your architectural choices under cross-examination.</p>
+        <div class="flex flex-wrap gap-3 mb-4">
+          <select id="judgePersona" class="bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200">
+            <option value="technical">👨‍💻 Technical Judge (Architecture & Edge Cases)</option>
+            <option value="innovation">💡 Innovation Judge (Originality & Baselines)</option>
+            <option value="industry">💰 Industry Judge (Costs, Scalability & Market)</option>
+            <option value="viva">🎤 Viva Examiner (Academic Rigor & Defense)</option>
+          </select>
+          <button onclick="startViva()" id="startVivaBtn" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded text-sm font-semibold transition">
+            Start Defense
+          </button>
+        </div>
+
+        <div id="vivaBox" class="hidden space-y-4">
+          <div id="judgePoints" class="hidden bg-slate-900 border border-slate-700 rounded p-3 text-sm text-slate-200"></div>
+          <div id="chatHistory" class="bg-slate-900 border border-slate-700 p-4 rounded-lg h-72 overflow-y-auto space-y-3 text-sm"></div>
+          <div class="flex gap-2">
+            <input id="studentReply" onkeydown="if(event.key==='Enter') sendVivaReply()" class="flex-grow bg-slate-900 border border-slate-700 rounded p-2 text-sm text-slate-200" placeholder="Type your defense answer here..." />
+            <button onclick="sendVivaReply()" id="sendReplyBtn" class="bg-indigo-600 hover:bg-indigo-500 px-5 py-2 rounded text-sm font-semibold transition">
+              Send
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    let currentProjectId = null;
+    let currentSessionId = null;
+    let currentEvaluation = null;
+    let radarInstance = null;
+
+    async function submitEvaluation() {
+      const requiredFields = [
+        'title',
+        'problem_statement',
+        'abstract',
+        'objectives',
+        'tech_stack',
+        'methodology',
+        'expected_outcome'
+      ];
+
+      for (const fieldId of requiredFields) {
+        const value = document.getElementById(fieldId).value.trim();
+        if (!value) {
+          alert('Please complete all project fields before running evaluation.');
+          document.getElementById(fieldId).focus();
+          return;
+        }
+      }
+
+      const btn = document.getElementById('evalBtn');
+      btn.disabled = true;
+      btn.innerText = "Evaluating across metrics...";
+
+      const payload = {
+        title: document.getElementById('title').value.trim(),
+        problem_statement: document.getElementById('problem_statement').value.trim(),
+        abstract: document.getElementById('abstract').value.trim(),
+        objectives: document.getElementById('objectives').value.trim(),
+        tech_stack: document.getElementById('tech_stack').value.trim(),
+        methodology: document.getElementById('methodology').value.trim(),
+        features: "Project-specific functionality, key capabilities, and deliverables.",
+        expected_outcome: document.getElementById('expected_outcome').value.trim()
+      };
+
+      try {
+        const res = await fetch('/api/evaluate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error(text || 'Unknown server error');
+        }
+
+        if (!res.ok) {
+          throw new Error(data.detail || 'Evaluation failed');
+        }
+
+        currentProjectId = data.project_id;
+        renderResults(data.evaluation);
+      } catch (err) {
+        alert('Evaluation failed: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Run Panel Evaluation";
+      }
+    }
+
+    function renderResults(evaluation) {
+      currentEvaluation = evaluation;
+      document.getElementById('resultsSection').classList.remove('hidden');
+      document.getElementById('scoreBadge').innerText = `${evaluation.overall_score} / 100`;
+
+      document.getElementById('weaknessList').innerHTML = 
+        evaluation.weak_points.map(w => `<li>${w}</li>`).join('');
+
+      document.getElementById('improvementList').innerHTML = 
+        evaluation.suggested_improvements.map(i => `<li>${i}</li>`).join('');
+
+      const s = evaluation.scores;
+      const ctx = document.getElementById('radarChart').getContext('2d');
+      if (radarInstance) radarInstance.destroy();
+
+      radarInstance = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: ['Innovation', 'Feasibility', 'Impact', 'Tech Depth', 'Scalability', 'Presentation'],
+          datasets: [{
+            label: 'Score Metric',
+            data: [s.innovation, s.feasibility, s.impact, s.technical_depth, s.scalability, s.presentation],
+            backgroundColor: 'rgba(99, 102, 241, 0.25)',
+            borderColor: 'rgba(129, 140, 248, 1)',
+            pointBackgroundColor: 'rgba(129, 140, 248, 1)'
+          }]
+        },
+        options: {
+          scales: {
+            r: {
+              min: 0,
+              max: 100,
+              grid: { color: '#334155' },
+              angleLines: { color: '#334155' },
+              pointLabels: { color: '#cbd5e1', font: { size: 11 } },
+              ticks: { display: false }
+            }
+          }
+        }
+      });
+    }
+
+    async function downloadReport() {
+      const project = {
+        title: document.getElementById('title').value.trim(),
+        problem_statement: document.getElementById('problem_statement').value.trim(),
+        abstract: document.getElementById('abstract').value.trim(),
+        objectives: document.getElementById('objectives').value.trim(),
+        tech_stack: document.getElementById('tech_stack').value.trim(),
+        methodology: document.getElementById('methodology').value.trim(),
+        features: "Project-specific functionality, key capabilities, and deliverables.",
+        expected_outcome: document.getElementById('expected_outcome').value.trim()
+      };
+
+      if (!currentEvaluation) {
+        alert('Please run the evaluation before downloading the project report.');
+        return;
+      }
+
+      try {
+        const url = currentProjectId ? `/api/report/pdf?project_id=${currentProjectId}` : '/api/report/pdf';
+
+        if (currentProjectId) {
+          window.open(url, '_blank', 'noopener,noreferrer');
+          return;
+        }
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ project, evaluation: currentEvaluation })
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || 'Unable to generate PDF');
+        }
+
+        const blob = await response.blob();
+        const href = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = href;
+        anchor.target = '_blank';
+        anchor.rel = 'noopener noreferrer';
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(href);
+      } catch (err) {
+        alert('PDF generation failed: ' + err.message);
+      }
+    }
+
+    async function startViva() {
+      const btn = document.getElementById('startVivaBtn');
+      btn.disabled = true;
+      btn.innerText = "Connecting...";
+
+      const persona = document.getElementById('judgePersona').value;
+      try {
+        const res = await fetch('/api/viva/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ project_id: currentProjectId, judge_persona: persona })
+        });
+        const data = await res.json();
+        currentSessionId = data.session_id;
+
+        const chat = document.getElementById('chatHistory');
+        chat.innerHTML = `<div class="p-3 bg-slate-800 rounded border-l-4 border-indigo-500"><strong>Judge:</strong> ${data.judge_question}</div>`;
+        const judgePoints = document.getElementById('judgePoints');
+        if (data.judge_points && data.judge_points.length) {
+          judgePoints.classList.remove('hidden');
+          judgePoints.innerHTML = `<div class="font-semibold text-indigo-300 mb-1">Judge defense points</div><ul class="list-disc list-inside space-y-1 text-slate-300">${data.judge_points.map(p => `<li>${p}</li>`).join('')}</ul>`;
+        } else {
+          judgePoints.classList.add('hidden');
+        }
+        document.getElementById('vivaBox').classList.remove('hidden');
+      } catch (err) {
+        alert("Viva start failed: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Start Defense";
+      }
+    }
+
+    async function sendVivaReply() {
+      const input = document.getElementById('studentReply');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const chat = document.getElementById('chatHistory');
+      chat.innerHTML += `<div class="p-3 bg-slate-800 rounded border-l-4 border-emerald-500 text-right"><strong>You:</strong> ${text}</div>`;
+      input.value = "";
+      chat.scrollTop = chat.scrollHeight;
+
+      const sendBtn = document.getElementById('sendReplyBtn');
+      sendBtn.disabled = true;
+      sendBtn.innerText = "...";
+
+      try {
+        const res = await fetch('/api/viva/turn', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ session_id: currentSessionId, student_response: text })
+        });
+        const data = await res.json();
+
+        const judgePoints = document.getElementById('judgePoints');
+        judgePoints.classList.remove('hidden');
+        judgePoints.innerHTML = `<div class="font-semibold text-indigo-300 mb-1">Judge defense points</div><div class="text-slate-200">Verdict: ${data.verdict}</div><div class="text-emerald-300">Defense score: ${data.defense_points}/10</div>`;
+
+        chat.innerHTML += `<div class="p-3 bg-slate-800 rounded border-l-4 border-indigo-500"><strong>Judge:</strong> ${data.judge_reply}</div>`;
+        chat.scrollTop = chat.scrollHeight;
+      } catch (err) {
+        alert("Failed to send reply: " + err.message);
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.innerText = "Send";
+      }
+    }
+  </script>
+</body>
+</html>
